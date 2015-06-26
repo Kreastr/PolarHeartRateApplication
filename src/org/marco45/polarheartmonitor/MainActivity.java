@@ -3,6 +3,7 @@ package org.marco45.polarheartmonitor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -16,10 +17,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,7 +53,9 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 	boolean h7 = false; //Was the BTLE tested
 	boolean normal = false; //Was the BT tested
 	private Spinner spinner1;
-
+	int LastAnnounce = 0;
+	TextToSpeech tts;
+	PowerManager.WakeLock wl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -118,12 +125,23 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 		plot.addSeries(DataHandler.getInstance().getSeries1(), series1Format); 
 		plot.setTicksPerRangeLabel(3);
 		plot.getGraphWidget().setDomainLabelOrientation(-45);
-
+		tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+			@Override
+			public void onInit(int status) {
+				if(status != TextToSpeech.ERROR) {
+					tts.setLanguage(Locale.UK);
+				}
+			}
+		});
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+		wl.acquire();
 
 	}
 
 	@Override
 	protected void onDestroy(){
+		wl.release();
 		super.onDestroy();
 		DataHandler.getInstance().deleteObserver(this);
 	}
@@ -355,7 +373,19 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 				avg.setText("Avg "+DataHandler.getInstance().getAvg()+" BPM");
 
 				TextView max = (TextView) findViewById(R.id.max);
-				max.setText("Max "+DataHandler.getInstance().getMax()+" BPM");				
+				max.setText("Max "+DataHandler.getInstance().getMax()+" BPM");
+
+				int LastBPM = DataHandler.getInstance().getLastValue();
+				if (Math.abs(LastAnnounce - LastBPM) > 5) {
+
+					/*AudioManager am = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+					int amStreamMusicMaxVol = am.getStreamMaxVolume(am.STREAM_MUSIC);
+					am.setStreamVolume(am.STREAM_MUSIC, amStreamMusicMaxVol, 0);
+					tts.speak("Hello", TextToSpeech.QUEUE_FLUSH, null);
+					int result = tts.setLanguage(Locale.US);*/
+					int result2 = tts.speak(""+LastBPM, TextToSpeech.QUEUE_FLUSH, null);
+					LastAnnounce = LastBPM;
+				}
 			}
 		});
 	}

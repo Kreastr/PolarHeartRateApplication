@@ -1,6 +1,7 @@
 package org.marco45.polarheartmonitor;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import android.annotation.SuppressLint;
@@ -10,6 +11,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
 /**
@@ -25,11 +27,13 @@ public class H7ConnectThread  extends Thread{
 	private final String HRUUID = "0000180D-0000-1000-8000-00805F9B34FB";
 	static BluetoothGattDescriptor descriptor;
 	static BluetoothGattCharacteristic cc;
-	
+	private int LastAnnounce = 0;
+
 	public H7ConnectThread(BluetoothDevice device, MainActivity ac) {
 		Log.i("H7ConnectThread", "Starting H7 reader BTLE");
 		this.ac=ac;
 		gat = device.connectGatt(ac, false, btleGattCallback); // Connect to the device and store the server (gatt)
+
 	}
 
 	
@@ -55,6 +59,7 @@ public class H7ConnectThread  extends Thread{
 	    	int bmp = data[1] & 0xFF; // To unsign the value
 	    	DataHandler.getInstance().cleanInput(bmp);
 			Log.v("H7ConnectThread", "Data received from HR "+bmp);
+
 	    }
 	 
 		//called on the successful connection
@@ -73,7 +78,7 @@ public class H7ConnectThread  extends Thread{
 	 
 	    //Called when services are discovered.
 	    @Override
-	    public void onServicesDiscovered(final BluetoothGatt gatt, final int status) { 
+	    public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
 	    	BluetoothGattService service = gatt.getService(UUID.fromString(HRUUID)); // Return the HR service
 			//BluetoothGattCharacteristic characteristic = service.getCharacteristic(UUID.fromString("00002A37-0000-1000-8000-00805F9B34FB"));
 			List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics(); //Get the hart rate value
