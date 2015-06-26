@@ -10,11 +10,6 @@ import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.PointLabelFormatter;
 import com.androidplot.xy.XYPlot;
 import com.androidplot.xy.SimpleXYSeries;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.analytics.GoogleAnalytics;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -50,7 +45,6 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 	List<BluetoothDevice> pairedDevices = new ArrayList<BluetoothDevice>();
 	boolean menuBool = false; //display or not the disconnect option
 	private XYPlot plot;
-	Tracker t;//Set the Tracker
 	boolean h7 = false; //Was the BTLE tested
 	boolean normal = false; //Was the BT tested
 	private Spinner spinner1;
@@ -62,15 +56,7 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 		setContentView(R.layout.activity_main);
 		Log.i("Main Activity", "Starting Polar HR monitor main activity");
 		DataHandler.getInstance().addObserver(this);		
-		AdView mAdView = (AdView) findViewById(R.id.adView);
 
-        // Create an ad request. Check logcat output for the hashed device ID to
-        // get test ads on a physical device. e.g.
-        // "Use AdRequest.Builder.addTestDevice("ABCDEF012345") to get test ads on this device."
-        AdRequest adRequest = new AdRequest.Builder().build();
-
-        // Start loading the ad in the background.
-        mAdView.loadAd(adRequest);
         
         //Verify if device is to old for BTLE
         if(	android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2){
@@ -133,10 +119,6 @@ public class MainActivity extends Activity  implements OnItemSelectedListener, O
 		plot.setTicksPerRangeLabel(3);
 		plot.getGraphWidget().setDomainLabelOrientation(-45);
 
-		//ANALYTIC
-		t = GoogleAnalytics.getInstance(this).newTracker("UA-51478243-1");
-		t.setScreenName("Polar main page");
-		t.send(new HitBuilders.AppViewBuilder().build());
 
 	}
 
